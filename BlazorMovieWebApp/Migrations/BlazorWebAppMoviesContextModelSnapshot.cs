@@ -38,6 +38,10 @@ namespace BlazorMovieWebApp.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<string>("Rating")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateOnly>("ReleaseDate")
                         .HasColumnType("date");
 
