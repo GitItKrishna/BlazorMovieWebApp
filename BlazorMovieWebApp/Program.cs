@@ -19,7 +19,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
+    var context = services.GetRequiredService<BlazorWebAppMoviesContext>();
+    context.Database.Migrate();
     SeedData.Initialize(services);
 }
 
