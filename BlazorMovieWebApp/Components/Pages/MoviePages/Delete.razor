@@ -1,9 +1,10 @@
 @page "/movies/delete"
 @using Microsoft.EntityFrameworkCore
 @using BlazorMovieWebApp.Models
+@using Microsoft.Extensions.Caching.Distributed
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @inject NavigationManager NavigationManager
-
+@inject IDistributedCache Cache
 <PageTitle>Delete</PageTitle>
 
 <h1>Delete</h1>
@@ -65,6 +66,7 @@
     {
         using var context = DbFactory.CreateDbContext();
         context.Movie.Remove(movie!);
+        await Cache.RemoveAsync($"Movie_{movie!.Id}");
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/movies");
     }

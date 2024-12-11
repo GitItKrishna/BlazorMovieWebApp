@@ -11,9 +11,13 @@ builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddStackExchangeRedisCache(options=>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Cache");
+});
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())

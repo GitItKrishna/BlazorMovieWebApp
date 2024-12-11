@@ -1,9 +1,10 @@
 @page "/movies/edit"
 @using Microsoft.EntityFrameworkCore
 @using BlazorMovieWebApp.Models
+@using Microsoft.Extensions.Caching.Distributed
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @inject NavigationManager NavigationManager
-
+@inject IDistributedCache Cache
 <PageTitle>Edit</PageTitle>
 
 <h1>Edit</h1>
@@ -85,6 +86,7 @@ else
         try
         {
             await context.SaveChangesAsync();
+            await Cache.RemoveAsync($"Movie_{Movie!.Id}");
         }
         catch (DbUpdateConcurrencyException)
         {

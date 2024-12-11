@@ -1,9 +1,10 @@
 @page "/movies/details"
 @using Microsoft.EntityFrameworkCore
 @using BlazorMovieWebApp.Models
+@using Microsoft.Extensions.Caching.Distributed
 @inject IDbContextFactory<BlazorWebAppMovies.Data.BlazorWebAppMoviesContext> DbFactory
 @inject NavigationManager NavigationManager
-
+@inject IDistributedCache Cache
 <PageTitle>Movie Details</PageTitle>
 
 <h1>Details</h1>
@@ -43,12 +44,29 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        movie = await context.Movie.FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (movie is null)
+        var cacheKey = $"Movie_{Id}";
+        var cachedMovie = await Cache.GetStringAsync(cacheKey);
+        if (cachedMovie is not null)
         {
-            NavigationManager.NavigateTo("notfound");
+            movie = System.Text.Json.JsonSerializer.Deserialize<Movie>(cachedMovie);
+        }
+        else
+        {
+            using var context = DbFactory.CreateDbContext();
+            movie = await context.Movie.FirstOrDefaultAsync(m => m.Id == Id);
+            if (movie is not null)
+            {
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
+                };
+                var serializedMovie = System.Text.Json.JsonSerializer.Serialize(movie);
+                await Cache.SetStringAsync(cacheKey, serializedMovie, cacheOptions); 
+            }
+            else
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
         }
     }
 }
